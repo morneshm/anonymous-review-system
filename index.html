@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Anonymous Review System</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+    #container { max-width: 700px; margin: auto; background: white; padding: 20px; border-radius: 10px; }
+    textarea, input, select { width: 100%; padding: 10px; margin-top: 10px; }
+    button { padding: 10px 20px; margin-top: 10px; cursor: pointer; }
+    .review { background: #eee; padding: 10px; border-radius: 5px; margin-top: 10px; }
+    .admin-only { display: none; }
+    .login-box { background: white; padding: 20px; max-width: 300px; margin: 50px auto; border-radius: 10px; }
+  </style>
+</head>
+<body>
+
+<div id="loginPage" class="login-box">
+  <h3>Admin Login</h3>
+  <input type="password" id="adminPass" placeholder="Enter admin password">
+  <button onclick="loginAdmin()">Login</button>
+</div>
+
+<div id="container" style="display:none;">
+  <h2>📝 Anonymous Review System</h2>
+
+  <h3>Submit Review (Admin will see it)</h3>
+  <textarea id="reviewInput" placeholder="Write your anonymous review..."></textarea>
+
+  <label>Rating:</label>
+  <select id="ratingSelect">
+    <option value="⭐">⭐</option>
+    <option value="⭐⭐">⭐⭐</option>
+    <option value="⭐⭐⭐">⭐⭐⭐</option>
+    <option value="⭐⭐⭐⭐">⭐⭐⭐⭐</option>
+    <option value="⭐⭐⭐⭐⭐">⭐⭐⭐⭐⭐</option>
+  </select>
+
+  <button onclick="postReview()">Submit Review</button>
+
+  <h3>📌 Admin Inbox:</h3>
+  <div id="reviews"></div>
+</div>
+
+<script>
+  // ---- ADMIN LOGIN ----
+  function loginAdmin() {
+    let pass = document.getElementById("adminPass").value;
+    if (pass === "admin123") { 
+      localStorage.setItem("adminLogged", "yes");
+      document.getElementById("loginPage").style.display = "none";
+      document.getElementById("container").style.display = "block";
+      loadReviews();
+    } else {
+      alert("Incorrect password!");
+    }
+  }
+
+  // auto-login if already logged
+  if (localStorage.getItem("adminLogged") === "yes") {
+    document.getElementById("loginPage").style.display = "none";
+    document.getElementById("container").style.display = "block";
+    loadReviews();
+  }
+
+  // ---- SUBMIT REVIEW ----
+  function postReview() {
+    let text = document.getElementById("reviewInput").value.trim();
+    let rating = document.getElementById("ratingSelect").value;
+
+    if (!text) return alert("Please write a review!");
+
+    let reviews = JSON.parse(localStorage.getItem("reviews") || "[]");
+
+    reviews.unshift({
+      message: text,
+      rating: rating,
+      time: new Date().toLocaleString()
+    });
+
+    localStorage.setItem("reviews", JSON.stringify(reviews));
+
+    document.getElementById("reviewInput").value = "";
+    loadReviews();
+  }
+
+  // ---- LOAD REVIEWS ----
+  function loadReviews() {
+    let reviews = JSON.parse(localStorage.getItem("reviews") || "[]");
+    let container = document.getElementById("reviews");
+
+    container.innerHTML = reviews.map(r => `
+      <div class="review">
+        <p><strong>Rating: ${r.rating}</strong></p>
+        <p>${r.message}</p>
+        <small>Posted: ${r.time}</small>
+      </div>
+    `).join("");
+  }
+</script>
+
+</body>
+</html>
